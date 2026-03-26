@@ -1,0 +1,25 @@
+# ngrok configuration for fullapp (frontend + backend)
+#
+# First-time setup: ngrok requires a free account and authtoken.
+#   1. Sign up: https://dashboard.ngrok.com/signup
+#   2. Get your authtoken: https://dashboard.ngrok.com/get-started/your-authtoken
+#   3. Run: ngrok config add-authtoken YOUR_TOKEN
+#
+# Usage:
+#   ngrok start --config ngrok.yml --all
+# Or start individually:
+#   ngrok start --config ngrok.yml frontend
+#   ngrok start --config ngrok.yml backend
+#
+# After starting, set VITE_API_URL in frontend/.env to your backend ngrok URL
+# (e.g. https://xxxx.ngrok-free.app) so the frontend can reach the API when
+# accessed via the frontend ngrok URL.
+
+version: "2"
+tunnels:
+  frontend:
+    proto: http
+    addr: 5175
+  backend:
+    proto: http
+    addr: 8001
