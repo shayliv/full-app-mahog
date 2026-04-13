@@ -20,9 +20,39 @@ export function AppLayout({ children }: AppLayoutProps) {
           <nav className="flex gap-4 text-sm text-slate-700">
             <NavLink
               to="/students"
-              active={location.pathname.startsWith("/students")}
+              active={location.pathname === "/students"}
             >
               {labels.nav.students}
+            </NavLink>
+            <NavLink
+              to="/commanders"
+              active={location.pathname === "/commanders"}
+            >
+              {labels.nav.commanders}
+            </NavLink>
+            <NavLink
+              to="/views/discipline"
+              active={location.pathname === "/views/discipline"}
+            >
+              {labels.nav.discipline}
+            </NavLink>
+            <NavLink
+              to="/views/medical"
+              active={location.pathname === "/views/medical"}
+            >
+              {labels.nav.medical}
+            </NavLink>
+            <NavLink
+              to="/views/evaluation"
+              active={location.pathname === "/views/evaluation"}
+            >
+              {labels.nav.evaluation}
+            </NavLink>
+            <NavLink
+              to="/analytics"
+              active={location.pathname === "/analytics"}
+            >
+              סטטיסטיקות
             </NavLink>
           </nav>
         </div>

@@ -2,7 +2,18 @@ export const labels = {
   appTitle: "מערכת ניהול חניכים",
   nav: {
     dashboard: "לוח בקרה",
-    students: "תיקי חניכים"
+    students: "תיקי חניכים",
+    commanders: "מפקדים",
+    discipline: "משמעת",
+    medical: "רפואה",
+    evaluation: "מקצועי"
+  },
+  medicalEventTypes: {
+    sick_call: "קריאה חולה",
+    doctor_referral: "הפניה לרופא",
+    exemption: "פטור",
+    medical_leave: "חופשה רפואית",
+    other: "אחר"
   },
   dashboard: {
     title: "לוח בקרה",
@@ -21,6 +32,7 @@ export const labels = {
     disciplineCount: "מספר אירועי משמעת",
     medicalStatus: "מצב רפואי",
     gradeAverage: "ממוצע ציונים",
+    importFile: "ייבוא קובץ",
     exportCsv: "ייצוא ל-CSV",
     table: {
       name: "שם מלא",
@@ -59,5 +71,23 @@ export const labels = {
       statusActive: "פעיל",
       statusTerminated: "הודח"
     }
+  },
+  commandersList: {
+    title: "מפקדים",
+    importFile: "ייבוא קובץ",
+    table: {
+      fullName: "שם מלא",
+      departmentName: "מרפאה/מגמה"
+    }
+  },
+  import: {
+    title: "ייבוא חניכים",
+    description: "בחר קובץ Excel (.xlsx, .xls) או CSV לייבוא חניכים. הקובץ צריך לכלול: שם פרטי+שם משפחה (או full_name), תז (או id_number). שדות נוספים: מספר אישי, קורס, מגמה, כיתה, מפקד, עיר מגורים",
+    commandersTitle: "ייבוא מפקדים",
+    commandersDescription: "בחר קובץ Excel (.xlsx, .xls) או CSV לייבוא מפקדים. הקובץ צריך לכלול: שם פרטי+שם משפחה (או full_name). שדות נוספים: תפקיד (מפקד/רמ״ג/מנהל), מרפאה, מפקד עליון",
+    selectFile: "בחר קובץ...",
+    upload: "העלה",
+    uploading: "מעלה...",
+    cancel: "ביטול"
   }
 };

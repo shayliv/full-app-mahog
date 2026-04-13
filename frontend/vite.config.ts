@@ -7,6 +7,7 @@ const isNgrok = process.env.VITE_API_URL && /ngrok-free\.app|\.ngrok\.(io|dev)/.
 export default defineConfig({
   plugins: [react()],
   server: {
+    host: true,
     allowedHosts: [".ngrok-free.app", ".ngrok.io", ".ngrok.dev"],
     port: 5175,
     proxy: {

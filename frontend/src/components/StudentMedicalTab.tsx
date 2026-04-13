@@ -11,6 +11,7 @@ type MedicalProfileData = {
   temporary_exemptions?: string | null;
   allergies?: string | null;
   diet?: string | null;
+  exemption_documents?: string[] | null;
 };
 
 type MedicalEvent = {
@@ -88,6 +89,19 @@ export function StudentMedicalTab({ studentId }: Props) {
     },
   });
 
+  const uploadDocument = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      await api.post(`/students/${studentId}/medical/documents`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["medical-profile", studentId] });
+    },
+  });
+
   const createEvent = useMutation({
     mutationFn: async (fd: FormData) => {
       const payload = {
@@ -149,6 +163,42 @@ export function StudentMedicalTab({ studentId }: Props) {
                 <dd className="text-slate-900">{profile?.diet ?? "—"}</dd>
               </div>
             </dl>
+            {profile?.exemption_documents && profile.exemption_documents.length > 0 && (
+              <div className="mt-4">
+                <h3 className="text-sm font-medium text-slate-700 mb-2">מסמכי פטור</h3>
+                <ul className="space-y-1">
+                  {profile.exemption_documents.map((doc, idx) => (
+                    <li key={idx}>
+                      <a
+                        href={doc}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-emerald-600 hover:underline text-sm"
+                      >
+                        {doc.split("/").pop()}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <div className="mt-4">
+              <label className="flex flex-col gap-1">
+                <span className="text-sm font-medium text-slate-700">העלה מסמך פטור</span>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      uploadDocument.mutate(file);
+                      e.target.value = "";
+                    }
+                  }}
+                  className="text-sm"
+                />
+              </label>
+            </div>
           </div>
         ) : (
           <form

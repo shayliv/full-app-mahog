@@ -201,12 +201,20 @@ export function StudentEvaluationTab({ studentId }: Props) {
               <LineChart data={stats?.trend_points ?? []}>
                 <XAxis dataKey="date" hide />
                 <YAxis domain={[0, 100]} hide />
-                <Tooltip />
+                <Tooltip
+                  labelFormatter={(label) => `תאריך: ${label}`}
+                  formatter={(value: any, name: string) => {
+                    if (name === "grade") return [`${value}`, "ציון"];
+                    return [value, name];
+                  }}
+                />
                 <Line
                   type="monotone"
                   dataKey="grade"
                   stroke="#22c55e"
-                  dot={false}
+                  strokeWidth={2}
+                  dot={{ fill: "#22c55e", r: 4 }}
+                  activeDot={{ r: 6 }}
                 />
               </LineChart>
             </ResponsiveContainer>

@@ -16,6 +16,7 @@
 # accessed via the frontend ngrok URL.
 
 version: "2"
+authtoken: 2owB3oYC1mXhwNBz5tzdDj6OWGA_omCi6XAxBbHy3FW5YJVm
 tunnels:
   frontend:
     proto: http

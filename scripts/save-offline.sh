@@ -9,13 +9,14 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 OUTPUT_DIR="$PROJECT_DIR/offline-images"
 
-echo "==> Building Docker images..."
+echo "==> Building Docker images for linux/amd64 platform..."
 cd "$PROJECT_DIR"
-docker compose build
+docker build --platform linux/amd64 -t student-crm-backend:latest ./backend
+docker build --platform linux/amd64 -t student-crm-frontend:latest ./frontend
 
 echo ""
-echo "==> Pulling MySQL image (if not already present)..."
-docker pull mysql:8.0
+echo "==> Pulling MySQL image for linux/amd64 (if not already present)..."
+docker pull --platform linux/amd64 mysql:8.0
 
 echo ""
 echo "==> Saving images to $OUTPUT_DIR ..."

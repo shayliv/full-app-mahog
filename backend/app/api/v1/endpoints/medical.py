@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
+import json
 
 from app.db.session import get_db
 from app.models.medical import MedicalEvent as MedicalEventModel
@@ -140,4 +141,66 @@ def delete_medical_event(
         raise HTTPException(status_code=404, detail="Medical event not found")
     db.delete(event)
     db.commit()
+
+
+@router.post("/documents", response_model=MedicalProfile)
+async def upload_medical_document(
+    student_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+) -> MedicalProfile:
+    """Upload a medical exemption document for a student."""
+    profile = (
+        db.query(MedicalProfileModel)
+        .filter(MedicalProfileModel.student_id == student_id)
+        .first()
+    )
+
+    if not profile:
+        # Create profile if it doesn't exist
+        profile = MedicalProfileModel(student_id=student_id)
+        db.add(profile)
+        db.flush()
+
+    # Save file
+    from pathlib import Path
+    static_dir = Path(__file__).resolve().parent.parent.parent.parent.parent / "static" / "uploads" / "medical"
+    static_dir.mkdir(parents=True, exist_ok=True)
+
+    # Generate unique filename
+    import uuid
+    ext = Path(file.filename or "document").suffix
+    filename = f"{student_id}_{uuid.uuid4()}{ext}"
+    path = static_dir / filename
+
+    contents = await file.read()
+    path.write_bytes(contents)
+
+    document_url = f"/static/uploads/medical/{filename}"
+
+    # Update profile with document path
+    if profile.exemption_documents_json:
+        try:
+            docs = json.loads(profile.exemption_documents_json)
+        except:
+            docs = []
+    else:
+        docs = []
+
+    docs.append(document_url)
+    profile.exemption_documents_json = json.dumps(docs)
+
+    db.add(profile)
+    db.commit()
+    db.refresh(profile)
+
+    # Parse exemption_documents for response
+    exemption_docs = None
+    if profile.exemption_documents_json:
+        try:
+            exemption_docs = json.loads(profile.exemption_documents_json)
+        except:
+            exemption_docs = None
+
+    return MedicalProfile.from_orm(profile).model_copy(update={"exemption_documents": exemption_docs})
 

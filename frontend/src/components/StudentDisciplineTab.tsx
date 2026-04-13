@@ -1,3 +1,4 @@
+import React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import api from "../lib/api";
@@ -22,6 +23,8 @@ type Props = {
 
 export function StudentDisciplineTab({ studentId }: Props) {
   const qc = useQueryClient();
+  const [showAddForm, setShowAddForm] = React.useState(false);
+  const [editingEvent, setEditingEvent] = React.useState<DisciplineEvent | null>(null);
 
   const { data } = useQuery<DisciplineEvent[]>({
     queryKey: ["discipline", studentId],
@@ -50,30 +53,82 @@ export function StudentDisciplineTab({ studentId }: Props) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["discipline", studentId] });
+      setShowAddForm(false);
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ eventId, formData }: { eventId: number; formData: FormData }) => {
+      const payload = {
+        event_type: formData.get("event_type"),
+        description: formData.get("description"),
+        date: formData.get("date"),
+        reporting_commander: formData.get("reporting_commander"),
+        response_type: formData.get("response_type") || null,
+        response_other_text: formData.get("response_other_text") || null,
+        punishment_delivered: formData.get("punishment_delivered") === "on",
+        punishment_completed: formData.get("punishment_completed") === "on",
+        remarks: formData.get("remarks"),
+      };
+      await api.put(`/students/${studentId}/discipline/${eventId}`, payload);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["discipline", studentId] });
+      setEditingEvent(null);
     }
   });
 
   return (
     <div className="space-y-4">
-      <form
-        className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-sm"
-        onSubmit={(e) => {
-          e.preventDefault();
-          const fd = new FormData(e.currentTarget);
-          if (!fd.get("description") || !fd.get("date") || !fd.get("remarks")) {
-            alert("נא למלא תיאור, תאריך והערות (שדה חובה).");
-            return;
-          }
-          createMutation.mutate(fd);
-          e.currentTarget.reset();
-        }}
-      >
+      {!showAddForm && !editingEvent && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() => setShowAddForm(true)}
+            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500"
+          >
+            + הוסף אירוע משמעת
+          </button>
+        </div>
+      )}
+
+      {(showAddForm || editingEvent) && (
+        <form
+          className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-sm"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const fd = new FormData(e.currentTarget);
+            if (!fd.get("description") || !fd.get("date") || !fd.get("remarks")) {
+              alert("נא למלא תיאור, תאריך והערות (שדה חובה).");
+              return;
+            }
+            if (editingEvent) {
+              updateMutation.mutate({ eventId: editingEvent.id, formData: fd });
+            } else {
+              createMutation.mutate(fd);
+            }
+            e.currentTarget.reset();
+          }}
+        >
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="text-base font-medium">{editingEvent ? "ערוך אירוע משמעת" : "הוסף אירוע משמעת"}</h3>
+          <button
+            type="button"
+            onClick={() => {
+              setShowAddForm(false);
+              setEditingEvent(null);
+            }}
+            className="text-slate-400 hover:text-slate-600"
+          >
+            ✕
+          </button>
+        </div>
         <div className="grid gap-3 sm:grid-cols-3">
           <label className="flex flex-col gap-1">
             <span>סוג אירוע</span>
             <select
               name="event_type"
-              defaultValue="individual"
+              defaultValue={editingEvent?.event_type || "individual"}
               className="rounded-md border border-slate-300 bg-white px-2 py-1"
             >
               <option value="individual">אירוע יחידני</option>
@@ -86,6 +141,7 @@ export function StudentDisciplineTab({ studentId }: Props) {
             <input
               name="date"
               type="date"
+              defaultValue={editingEvent?.date || ""}
               className="rounded-md border border-slate-300 bg-white px-2 py-1"
               required
             />
@@ -95,6 +151,7 @@ export function StudentDisciplineTab({ studentId }: Props) {
             <input
               name="reporting_commander"
               type="text"
+              defaultValue={editingEvent?.reporting_commander || ""}
               className="rounded-md border border-slate-300 bg-white px-2 py-1"
             />
           </label>
@@ -104,6 +161,7 @@ export function StudentDisciplineTab({ studentId }: Props) {
           <textarea
             name="description"
             rows={3}
+            defaultValue={editingEvent?.description || ""}
             className="rounded-md border border-slate-300 bg-white px-2 py-1"
             required
           />
@@ -113,6 +171,7 @@ export function StudentDisciplineTab({ studentId }: Props) {
             <span>תגובה משמעתית</span>
             <select
               name="response_type"
+              defaultValue={editingEvent?.response_type || ""}
               className="rounded-md border border-slate-300 bg-white px-2 py-1"
             >
               <option value="">ללא</option>
@@ -131,18 +190,19 @@ export function StudentDisciplineTab({ studentId }: Props) {
             <input
               name="response_other_text"
               type="text"
-              className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1"
+              defaultValue={editingEvent?.response_other_text || ""}
+              className="rounded-md border border-slate-300 bg-white px-2 py-1"
             />
           </label>
           <div className="flex flex-col gap-1">
             <span>סטטוס ענישה</span>
             <div className="flex gap-4">
               <label className="flex items-center gap-1">
-                <input name="punishment_delivered" type="checkbox" />
+                <input name="punishment_delivered" type="checkbox" defaultChecked={editingEvent?.punishment_delivered} />
                 <span>הענישה נמסרה</span>
               </label>
               <label className="flex items-center gap-1">
-                <input name="punishment_completed" type="checkbox" />
+                <input name="punishment_completed" type="checkbox" defaultChecked={editingEvent?.punishment_completed} />
                 <span>הענישה הושלמה</span>
               </label>
             </div>
@@ -153,20 +213,32 @@ export function StudentDisciplineTab({ studentId }: Props) {
           <textarea
             name="remarks"
             rows={2}
+            defaultValue={editingEvent?.remarks || ""}
             className="rounded-md border border-slate-300 bg-white px-2 py-1"
             required
           />
         </label>
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setShowAddForm(false);
+              setEditingEvent(null);
+            }}
+            className="rounded-md border border-slate-300 px-4 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            ביטול
+          </button>
           <button
             type="submit"
             className="rounded-md bg-emerald-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-emerald-500 disabled:opacity-60"
-            disabled={createMutation.isPending}
+            disabled={createMutation.isPending || updateMutation.isPending}
           >
-            הוסף אירוע משמעת
+            {editingEvent ? "עדכן" : "הוסף"}
           </button>
         </div>
       </form>
+      )}
 
       <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
         <table className="min-w-full text-sm">
@@ -179,6 +251,7 @@ export function StudentDisciplineTab({ studentId }: Props) {
               <th>נמסרה</th>
               <th>הושלמה</th>
               <th>הערות</th>
+              <th>פעולות</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200">
@@ -191,12 +264,20 @@ export function StudentDisciplineTab({ studentId }: Props) {
                 <td>{e.punishment_delivered ? "כן" : "לא"}</td>
                 <td>{e.punishment_completed ? "כן" : "לא"}</td>
                 <td>{e.remarks}</td>
+                <td>
+                  <button
+                    onClick={() => setEditingEvent(e)}
+                    className="text-emerald-600 hover:text-emerald-700 text-sm"
+                  >
+                    ערוך
+                  </button>
+                </td>
               </tr>
             ))}
             {!data?.length && (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={8}
                   className="px-3 py-4 text-center text-slate-500"
                 >
                   אין אירועי משמעת לחניך זה.
