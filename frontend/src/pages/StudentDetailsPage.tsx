@@ -9,6 +9,7 @@ import { StudentEvaluationTab } from "../components/StudentEvaluationTab";
 import { StudentMedicalTab } from "../components/StudentMedicalTab";
 import { StudentSummariesTab } from "../components/StudentSummariesTab";
 import { StudentPersonalTab } from "../components/StudentPersonalTab";
+import { StudentBakatzimTab } from "../components/StudentBakatzimTab";
 
 export type StudentDetails = {
   id: number;
@@ -150,7 +151,7 @@ type TabsProps = {
   student: StudentDetails;
 };
 
-type TabKey = "discipline" | "evaluation" | "medical" | "summaries" | "personal";
+type TabKey = "discipline" | "evaluation" | "medical" | "summaries" | "personal" | "bakatzim";
 
 function Tabs({ studentId, student }: TabsProps) {
   const [active, setActive] = useState<TabKey>("personal");
@@ -188,12 +189,19 @@ function Tabs({ studentId, student }: TabsProps) {
         >
           {labels.studentDetails.tabs.summaries}
         </TabButton>
+        <TabButton
+          active={active === "bakatzim"}
+          onClick={() => setActive("bakatzim")}
+        >
+          בקצים
+        </TabButton>
       </div>
       {active === "personal" && <StudentPersonalTab studentId={studentId} student={student} />}
       {active === "discipline" && <StudentDisciplineTab studentId={studentId} />}
       {active === "evaluation" && <StudentEvaluationTab studentId={studentId} />}
       {active === "medical" && <StudentMedicalTab studentId={studentId} />}
       {active === "summaries" && <StudentSummariesTab studentId={studentId} />}
+      {active === "bakatzim" && <StudentBakatzimTab studentId={studentId} />}
     </section>
   );
 }

@@ -7,6 +7,7 @@ from pydantic import BaseModel
 class CommandSummaryBase(BaseModel):
     commander_name: str
     date: date
+    title: Optional[str] = None
     text: str
     attachment_path: Optional[str] = None
 
@@ -18,6 +19,7 @@ class CommandSummaryCreate(CommandSummaryBase):
 class CommandSummaryUpdate(BaseModel):
     commander_name: Optional[str] = None
     date: Optional[date] = None
+    title: Optional[str] = None
     text: Optional[str] = None
     attachment_path: Optional[str] = None
 

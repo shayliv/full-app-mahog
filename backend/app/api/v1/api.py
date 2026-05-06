@@ -12,6 +12,8 @@ from app.api.v1.endpoints import (
     export,
     views,
     analytics,
+    attachments,
+    bakatzim,
 )
 
 
@@ -33,7 +35,11 @@ api_router.include_router(
 api_router.include_router(
     summaries.router, prefix="/students/{student_id}/summaries", tags=["summaries"]
 )
+api_router.include_router(
+    bakatzim.router, prefix="/students/{student_id}/bakatzim", tags=["bakatzim"]
+)
 api_router.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
 api_router.include_router(export.router, prefix="/export", tags=["export"])
 api_router.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
+api_router.include_router(attachments.router, prefix="/attachments", tags=["attachments"])
 

@@ -60,6 +60,9 @@ class Student(Base):
     command_summaries = relationship(
         "CommandSummary", back_populates="student", cascade="all, delete-orphan"
     )
+    bakatzim = relationship(
+        "Bakatz", back_populates="student", cascade="all, delete-orphan"
+    )
 
     commander = relationship(
         "User",

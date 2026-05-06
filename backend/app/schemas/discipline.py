@@ -19,7 +19,16 @@ class DisciplineResponseType(str, Enum):
     CLEANLINESS_INSPECTION = "cleanliness_inspection"
     REPRIMAND_TALK = "reprimand_talk"
     FOUR_CORNERS = "four_corners"
+    EXIT_HOURS = "exit_hours"
     OTHER = "other"
+
+
+class DisciplineStatus(str, Enum):
+    TOLD = "told"
+    SUBMITTED = "submitted"
+    DECIDED = "decided"
+    DELIVERED = "delivered"
+    COMPLETED = "completed"
 
 
 class DisciplineEventBase(BaseModel):
@@ -30,6 +39,7 @@ class DisciplineEventBase(BaseModel):
     attachment_path: Optional[str] = None
     response_type: Optional[DisciplineResponseType] = None
     response_other_text: Optional[str] = None
+    status: DisciplineStatus = DisciplineStatus.TOLD
     punishment_delivered: bool = False
     punishment_completed: bool = False
     remarks: str = Field(..., min_length=1)
@@ -46,6 +56,7 @@ class DisciplineEventUpdate(BaseModel):
     attachment_path: Optional[str] = None
     response_type: Optional[DisciplineResponseType] = None
     response_other_text: Optional[str] = None
+    status: Optional[DisciplineStatus] = None
     punishment_delivered: Optional[bool] = None
     punishment_completed: Optional[bool] = None
     remarks: Optional[str] = None
@@ -60,6 +71,7 @@ class DisciplineEvent(BaseModel):
     attachment_path: Optional[str] = None
     response_type: Optional[DisciplineResponseType] = None
     response_other_text: Optional[str] = None
+    status: DisciplineStatus
     punishment_delivered: bool
     punishment_completed: bool
     remarks: str

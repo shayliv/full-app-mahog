@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import api from "../lib/api";
 import { labels } from "../lib/i18n-he";
+import { RichTextEditor } from "./RichTextEditor";
 
 type MedicalProfileData = {
   id: number;
@@ -11,6 +12,7 @@ type MedicalProfileData = {
   temporary_exemptions?: string | null;
   allergies?: string | null;
   diet?: string | null;
+  notes?: string | null;
   exemption_documents?: string[] | null;
 };
 
@@ -19,8 +21,11 @@ type MedicalEvent = {
   event_type: string;
   start_date: string;
   end_date?: string | null;
+  event_time?: string | null;
   status: string;
   document_path?: string | null;
+  educational_material_missed?: string | null;
+  notes?: string | null;
 };
 
 const medicalProfileLabels: Record<string, string> = {
@@ -29,6 +34,7 @@ const medicalProfileLabels: Record<string, string> = {
   permanent_exemptions: "פטורים קבועים",
   temporary_exemptions: "פטורים זמניים",
   diet: "תזונה",
+  notes: "הערות"
 };
 
 const eventTypeLabels: Record<string, string> = {
@@ -46,6 +52,11 @@ type Props = {
 export function StudentMedicalTab({ studentId }: Props) {
   const qc = useQueryClient();
   const [profileEditMode, setProfileEditMode] = useState(false);
+  const [profileNotes, setProfileNotes] = useState("");
+  const [showAddEvent, setShowAddEvent] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<MedicalEvent | null>(null);
+  const [eventNotes, setEventNotes] = useState("");
+  const [eventEducationalMaterial, setEventEducationalMaterial] = useState("");
 
   const { data: profile, isLoading: profileLoading } = useQuery<MedicalProfileData | null>({
     queryKey: ["medical-profile", studentId],
@@ -76,6 +87,7 @@ export function StudentMedicalTab({ studentId }: Props) {
         temporary_exemptions: str("temporary_exemptions"),
         allergies: str("allergies"),
         diet: str("diet"),
+        notes: profileNotes || null,
       };
       if (profile?.id) {
         await api.put(`/students/${studentId}/medical/profile`, payload);
@@ -86,6 +98,7 @@ export function StudentMedicalTab({ studentId }: Props) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["medical-profile", studentId] });
       setProfileEditMode(false);
+      setProfileNotes("");
     },
   });
 
@@ -108,28 +121,73 @@ export function StudentMedicalTab({ studentId }: Props) {
         event_type: fd.get("event_type") as string,
         start_date: fd.get("start_date") as string,
         end_date: (fd.get("end_date") as string) || null,
+        event_time: (fd.get("event_time") as string) || null,
         status: fd.get("status") as string,
         document_path: null,
+        educational_material_missed: eventEducationalMaterial || null,
+        notes: eventNotes || null,
       };
       await api.post(`/students/${studentId}/medical/events`, payload);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["medical-events", studentId] });
+      setShowAddEvent(false);
+      setEventNotes("");
+      setEventEducationalMaterial("");
     },
   });
+
+  const updateEvent = useMutation({
+    mutationFn: async ({ eventId, fd }: { eventId: number; fd: FormData }) => {
+      const payload = {
+        event_type: fd.get("event_type") as string,
+        start_date: fd.get("start_date") as string,
+        end_date: (fd.get("end_date") as string) || null,
+        event_time: (fd.get("event_time") as string) || null,
+        status: fd.get("status") as string,
+        educational_material_missed: eventEducationalMaterial || null,
+        notes: eventNotes || null,
+      };
+      await api.put(`/students/${studentId}/medical/events/${eventId}`, payload);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["medical-events", studentId] });
+      setEditingEvent(null);
+      setEventNotes("");
+      setEventEducationalMaterial("");
+    },
+  });
+
+  const handleEditProfile = () => {
+    setProfileEditMode(true);
+    setProfileNotes(profile?.notes || "");
+  };
+
+  const handleEditEvent = (event: MedicalEvent) => {
+    setEditingEvent(event);
+    setEventNotes(event.notes || "");
+    setEventEducationalMaterial(event.educational_material_missed || "");
+  };
+
+  const handleCancelEventEdit = () => {
+    setShowAddEvent(false);
+    setEditingEvent(null);
+    setEventNotes("");
+    setEventEducationalMaterial("");
+  };
 
   const L = labels.studentDetails.card;
 
   return (
     <div className="space-y-6">
-      {/* Medical profile – view/edit like personal tab */}
+      {/* Medical profile – view/edit */}
       <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-sm">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-slate-700">פרופיל רפואי</h2>
           {!profileEditMode && (
             <button
               type="button"
-              onClick={() => setProfileEditMode(true)}
+              onClick={handleEditProfile}
               className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
             >
               {L.edit}
@@ -151,29 +209,36 @@ export function StudentMedicalTab({ studentId }: Props) {
                 <dd className="text-slate-900">{profile?.allergies ?? "—"}</dd>
               </div>
               <div>
-                <dt className="text-slate-500">{medicalProfileLabels.permanent_exemptions}</dt>
-                <dd className="text-slate-900">{profile?.permanent_exemptions ?? "—"}</dd>
-              </div>
-              <div>
-                <dt className="text-slate-500">{medicalProfileLabels.temporary_exemptions}</dt>
-                <dd className="text-slate-900">{profile?.temporary_exemptions ?? "—"}</dd>
-              </div>
-              <div>
                 <dt className="text-slate-500">{medicalProfileLabels.diet}</dt>
                 <dd className="text-slate-900">{profile?.diet ?? "—"}</dd>
               </div>
+              <div className="sm:col-span-2 lg:col-span-3">
+                <dt className="text-slate-500">{medicalProfileLabels.permanent_exemptions}</dt>
+                <dd className="text-slate-900 whitespace-pre-wrap">{profile?.permanent_exemptions ?? "—"}</dd>
+              </div>
+              <div className="sm:col-span-2 lg:col-span-3">
+                <dt className="text-slate-500">{medicalProfileLabels.temporary_exemptions}</dt>
+                <dd className="text-slate-900 whitespace-pre-wrap">{profile?.temporary_exemptions ?? "—"}</dd>
+              </div>
+              {profile?.notes && (
+                <div className="sm:col-span-2 lg:col-span-3">
+                  <dt className="text-slate-500">{medicalProfileLabels.notes}</dt>
+                  <dd className="text-slate-900 rich-text-display" dangerouslySetInnerHTML={{ __html: profile.notes }} />
+                </div>
+              )}
             </dl>
+
             {profile?.exemption_documents && profile.exemption_documents.length > 0 && (
               <div className="mt-4">
-                <h3 className="text-sm font-medium text-slate-700 mb-2">מסמכי פטור</h3>
+                <p className="mb-2 text-sm font-medium text-slate-700">מסמכי פטור</p>
                 <ul className="space-y-1">
-                  {profile.exemption_documents.map((doc, idx) => (
-                    <li key={idx}>
+                  {profile.exemption_documents.map((doc, i) => (
+                    <li key={i}>
                       <a
                         href={doc}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-emerald-600 hover:underline text-sm"
+                        className="text-sm text-blue-600 hover:underline"
                       >
                         {doc.split("/").pop()}
                       </a>
@@ -182,99 +247,113 @@ export function StudentMedicalTab({ studentId }: Props) {
                 </ul>
               </div>
             )}
-            <div className="mt-4">
-              <label className="flex flex-col gap-1">
-                <span className="text-sm font-medium text-slate-700">העלה מסמך פטור</span>
-                <input
-                  type="file"
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      uploadDocument.mutate(file);
-                      e.target.value = "";
-                    }
-                  }}
-                  className="text-sm"
-                />
-              </label>
-            </div>
           </div>
         ) : (
           <form
-            className="grid gap-3 md:grid-cols-2"
             onSubmit={(e) => {
               e.preventDefault();
               upsertProfile.mutate(new FormData(e.currentTarget));
             }}
           >
-            <label className="flex flex-col gap-1">
-              <span>{medicalProfileLabels.medical_profile}</span>
-              <select
-                name="medical_profile"
-                defaultValue={profile?.medical_profile ?? ""}
-                className="rounded-md border border-slate-300 bg-white px-2 py-1"
-              >
-                <option value="">בחר פרופיל</option>
-                <option value="97">97</option>
-                <option value="82">82</option>
-                <option value="72">72</option>
-                <option value="64">64</option>
-                <option value="45">45</option>
-                <option value="35">35</option>
-                <option value="30">30</option>
-                <option value="24">24</option>
-                <option value="21">21</option>
-              </select>
-            </label>
-            <label className="flex flex-col gap-1">
-              <span>{medicalProfileLabels.allergies}</span>
-              <input
-                name="allergies"
-                defaultValue={profile?.allergies ?? ""}
-                className="rounded-md border border-slate-300 bg-white px-2 py-1"
-              />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span>{medicalProfileLabels.permanent_exemptions}</span>
-              <textarea
-                name="permanent_exemptions"
-                defaultValue={profile?.permanent_exemptions ?? ""}
-                rows={2}
-                className="rounded-md border border-slate-300 bg-white px-2 py-1"
-              />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span>{medicalProfileLabels.temporary_exemptions}</span>
-              <textarea
-                name="temporary_exemptions"
-                defaultValue={profile?.temporary_exemptions ?? ""}
-                rows={2}
-                className="rounded-md border border-slate-300 bg-white px-2 py-1"
-              />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span>{medicalProfileLabels.diet}</span>
-              <input
-                name="diet"
-                defaultValue={profile?.diet ?? ""}
-                className="rounded-md border border-slate-300 bg-white px-2 py-1"
-              />
-            </label>
-            <div className="md:col-span-2 flex gap-2 pt-2">
-              <button
-                type="submit"
-                className="rounded-md bg-emerald-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-emerald-500 disabled:opacity-60"
-                disabled={upsertProfile.isPending}
-              >
-                שמור פרופיל רפואי
-              </button>
+            <div className="space-y-3">
+              <label className="flex flex-col gap-1">
+                <span>{medicalProfileLabels.medical_profile}</span>
+                <select
+                  name="medical_profile"
+                  defaultValue={profile?.medical_profile ?? ""}
+                  className="rounded-md border border-slate-300 bg-white px-2 py-1"
+                >
+                  <option value="">לא צוין</option>
+                  <option value="97">97</option>
+                  <option value="82">82</option>
+                  <option value="72">72</option>
+                  <option value="ב׳">ב׳</option>
+                  <option value="64">64</option>
+                  <option value="45">45</option>
+                  <option value="35">35</option>
+                  <option value="30">30</option>
+                  <option value="24">24</option>
+                  <option value="21">21</option>
+                </select>
+              </label>
+              <label className="flex flex-col gap-1">
+                <span>{medicalProfileLabels.allergies}</span>
+                <input
+                  name="allergies"
+                  type="text"
+                  defaultValue={profile?.allergies ?? ""}
+                  className="rounded-md border border-slate-300 bg-white px-2 py-1"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span>{medicalProfileLabels.permanent_exemptions}</span>
+                <textarea
+                  name="permanent_exemptions"
+                  rows={2}
+                  defaultValue={profile?.permanent_exemptions ?? ""}
+                  className="rounded-md border border-slate-300 bg-white px-2 py-1"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span>{medicalProfileLabels.temporary_exemptions}</span>
+                <textarea
+                  name="temporary_exemptions"
+                  rows={2}
+                  defaultValue={profile?.temporary_exemptions ?? ""}
+                  className="rounded-md border border-slate-300 bg-white px-2 py-1"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span>{medicalProfileLabels.diet}</span>
+                <input
+                  name="diet"
+                  type="text"
+                  defaultValue={profile?.diet ?? ""}
+                  className="rounded-md border border-slate-300 bg-white px-2 py-1"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span>{medicalProfileLabels.notes}</span>
+                <RichTextEditor
+                  value={profileNotes}
+                  onChange={setProfileNotes}
+                  placeholder="הערות רפואיות נוספות..."
+                />
+              </label>
+
+              <div className="mt-4">
+                <label className="flex flex-col gap-1">
+                  <span>העלה מסמך פטור</span>
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) uploadDocument.mutate(file);
+                    }}
+                    className="rounded-md border border-slate-300 bg-white px-2 py-1 text-sm"
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div className="mt-4 flex justify-end gap-2">
               <button
                 type="button"
-                onClick={() => setProfileEditMode(false)}
-                className="rounded-md border border-slate-300 bg-white px-4 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                onClick={() => {
+                  setProfileEditMode(false);
+                  setProfileNotes("");
+                }}
+                className="rounded-md border border-slate-300 px-4 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
               >
                 {L.cancel}
+              </button>
+              <button
+                type="submit"
+                disabled={upsertProfile.isPending}
+                className="rounded-md bg-emerald-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-emerald-500 disabled:opacity-60"
+              >
+                {L.save}
               </button>
             </div>
           </form>
@@ -282,93 +361,175 @@ export function StudentMedicalTab({ studentId }: Props) {
       </section>
 
       {/* Medical events */}
-      <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-sm">
-        <h2 className="text-sm font-semibold text-slate-800">אירועים רפואיים</h2>
-        <form
-          className="grid gap-3 md:grid-cols-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            const fd = new FormData(e.currentTarget);
-            if (!fd.get("event_type") || !fd.get("start_date") || !fd.get("status")) {
-              alert("נא למלא סוג אירוע, תאריך התחלה וסטטוס.");
-              return;
-            }
-            createEvent.mutate(fd);
-            e.currentTarget.reset();
-          }}
-        >
-          <label className="flex flex-col gap-1">
-            <span>סוג אירוע</span>
-            <select
-              name="event_type"
-              defaultValue="sick_call"
-              className="rounded-md border border-slate-300 bg-white px-2 py-1"
-            >
-              <option value="sick_call">תורנות חובש</option>
-              <option value="doctor_referral">הפניה לרופא</option>
-              <option value="exemption">פטור</option>
-              <option value="medical_leave">גימלים</option>
-              <option value="other">אחר</option>
-            </select>
-          </label>
-          <label className="flex flex-col gap-1">
-            <span>תאריך התחלה</span>
-            <input
-              name="start_date"
-              type="date"
-              className="rounded-md border border-slate-300 bg-white px-2 py-1"
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span>תאריך סיום</span>
-            <input
-              name="end_date"
-              type="date"
-              className="rounded-md border border-slate-300 bg-white px-2 py-1"
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span>סטטוס</span>
-            <select
-              name="status"
-              defaultValue="active"
-              className="rounded-md border border-slate-300 bg-white px-2 py-1"
-            >
-              <option value="active">פעיל</option>
-              <option value="closed">סגור</option>
-            </select>
-          </label>
-          <div className="md:col-span-4 flex justify-end">
+      <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-sm">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-slate-700">אירועים רפואיים</h2>
+          {!showAddEvent && !editingEvent && (
             <button
-              type="submit"
-              className="rounded-md bg-emerald-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-emerald-500 disabled:opacity-60"
-              disabled={createEvent.isPending}
+              type="button"
+              onClick={() => setShowAddEvent(true)}
+              className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500"
             >
-              הוסף אירוע רפואי
+              + הוסף אירוע
             </button>
-          </div>
-        </form>
+          )}
+        </div>
 
-        <table className="min-w-full text-sm">
-          <thead className="bg-slate-100 text-slate-700">
-            <tr className="[&>th]:px-3 [&>th]:py-2 [&>th]:text-right">
-              <th>סוג</th>
-              <th>תאריך התחלה</th>
-              <th>תאריך סיום</th>
-              <th>סטטוס</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-200">
-            {events.map((ev) => (
-              <tr key={ev.id} className="[&>td]:px-3 [&>td]:py-2">
-                <td>{eventTypeLabels[ev.event_type] ?? ev.event_type}</td>
-                <td>{ev.start_date}</td>
-                <td>{ev.end_date || "—"}</td>
-                <td>{ev.status === "active" ? "פעיל" : "סגור"}</td>
+        {(showAddEvent || editingEvent) && (
+          <form
+            className="grid gap-3 rounded border border-slate-200 bg-slate-50 p-3"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const fd = new FormData(e.currentTarget);
+              if (editingEvent) {
+                updateEvent.mutate({ eventId: editingEvent.id, fd });
+              } else {
+                createEvent.mutate(fd);
+              }
+            }}
+          >
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <label className="flex flex-col gap-1">
+                <span>סוג אירוע</span>
+                <select
+                  name="event_type"
+                  defaultValue={editingEvent?.event_type || "sick_call"}
+                  className="rounded-md border border-slate-300 bg-white px-2 py-1"
+                  required
+                >
+                  <option value="sick_call">תורנות חובש</option>
+                  <option value="doctor_referral">הפניה לרופא</option>
+                  <option value="exemption">פטור</option>
+                  <option value="medical_leave">גימלים</option>
+                  <option value="other">אחר</option>
+                </select>
+              </label>
+              <label className="flex flex-col gap-1">
+                <span>תאריך התחלה</span>
+                <input
+                  name="start_date"
+                  type="date"
+                  defaultValue={editingEvent?.start_date || ""}
+                  className="rounded-md border border-slate-300 bg-white px-2 py-1"
+                  required
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span>תאריך סיום</span>
+                <input
+                  name="end_date"
+                  type="date"
+                  defaultValue={editingEvent?.end_date || ""}
+                  className="rounded-md border border-slate-300 bg-white px-2 py-1"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span>שעת האירוע</span>
+                <input
+                  name="event_time"
+                  type="time"
+                  defaultValue={editingEvent?.event_time || ""}
+                  className="rounded-md border border-slate-300 bg-white px-2 py-1"
+                />
+              </label>
+            </div>
+            <label className="flex flex-col gap-1">
+              <span>סטטוס</span>
+              <select
+                name="status"
+                defaultValue={editingEvent?.status || "active"}
+                className="rounded-md border border-slate-300 bg-white px-2 py-1"
+                required
+              >
+                <option value="active">פעיל</option>
+                <option value="closed">סגור</option>
+              </select>
+            </label>
+            <label className="flex flex-col gap-1">
+              <span>חומר לימודי שפוספס</span>
+              <RichTextEditor
+                value={eventEducationalMaterial}
+                onChange={setEventEducationalMaterial}
+                placeholder="פרט איזה חומר לימודי פספס החניך..."
+              />
+            </label>
+            <label className="flex flex-col gap-1">
+              <span>הערות</span>
+              <RichTextEditor
+                value={eventNotes}
+                onChange={setEventNotes}
+                placeholder="הערות נוספות על האירוע..."
+              />
+            </label>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={handleCancelEventEdit}
+                className="rounded-md border border-slate-300 px-4 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                ביטול
+              </button>
+              <button
+                type="submit"
+                disabled={createEvent.isPending || updateEvent.isPending}
+                className="rounded-md bg-emerald-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-emerald-500 disabled:opacity-60"
+              >
+                {editingEvent ? "עדכן" : "הוסף"}
+              </button>
+            </div>
+          </form>
+        )}
+
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead className="bg-slate-100 text-slate-700">
+              <tr className="[&>th]:px-3 [&>th]:py-2 [&>th]:text-right">
+                <th>סוג אירוע</th>
+                <th>תאריך התחלה</th>
+                <th>תאריך סיום</th>
+                <th>שעה</th>
+                <th>סטטוס</th>
+                <th>פעולות</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-slate-200">
+              {events.map((ev) => (
+                <tr key={ev.id} className="[&>td]:px-3 [&>td]:py-2 hover:bg-slate-50">
+                  <td>{eventTypeLabels[ev.event_type] || ev.event_type}</td>
+                  <td>{ev.start_date}</td>
+                  <td>{ev.end_date || "—"}</td>
+                  <td>{ev.event_time || "—"}</td>
+                  <td>
+                    <span
+                      className={`inline-block rounded-full px-2 py-1 text-xs font-medium ${
+                        ev.status === "active"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {ev.status === "active" ? "פעיל" : "סגור"}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      onClick={() => handleEditEvent(ev)}
+                      className="text-emerald-600 hover:text-emerald-700 text-sm"
+                    >
+                      ערוך
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {!events.length && (
+                <tr>
+                  <td colSpan={6} className="px-3 py-4 text-center text-slate-500">
+                    אין אירועים רפואיים לחניך זה.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </section>
     </div>
   );

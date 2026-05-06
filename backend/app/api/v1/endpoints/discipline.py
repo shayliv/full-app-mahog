@@ -11,6 +11,7 @@ from app.schemas import (
     DisciplineEventCreate,
     DisciplineEventUpdate,
 )
+from app.utils.text_sanitizer import sanitize_html
 
 
 router = APIRouter()
@@ -42,6 +43,7 @@ def list_discipline_events(
             attachment_path=e.attachment_path,
             response_type=e.response_type,
             response_other_text=e.response_other_text,
+            status=e.status,
             punishment_delivered=e.punishment_delivered,
             punishment_completed=e.punishment_completed,
             remarks=e.remarks,
@@ -63,17 +65,22 @@ def create_discipline_event(
     if student_id not in event_in.student_ids:
         event_in.student_ids.append(student_id)
 
+    # Sanitize HTML in rich text fields
+    description = sanitize_html(event_in.description)
+    remarks = sanitize_html(event_in.remarks)
+
     event = DisciplineEventModel(
         event_type=event_in.event_type,
-        description=event_in.description,
+        description=description,
         date=event_in.date,
         reporting_commander=event_in.reporting_commander,
         attachment_path=event_in.attachment_path,
         response_type=event_in.response_type,
         response_other_text=event_in.response_other_text,
+        status=event_in.status,
         punishment_delivered=event_in.punishment_delivered,
         punishment_completed=event_in.punishment_completed,
-        remarks=event_in.remarks,
+        remarks=remarks,
     )
     db.add(event)
     db.flush()
@@ -95,6 +102,7 @@ def create_discipline_event(
         attachment_path=event.attachment_path,
         response_type=event.response_type,
         response_other_text=event.response_other_text,
+        status=event.status,
         punishment_delivered=event.punishment_delivered,
         punishment_completed=event.punishment_completed,
         remarks=event.remarks,
@@ -113,7 +121,15 @@ def update_discipline_event(
     if not event:
         raise HTTPException(status_code=404, detail="Discipline event not found")
 
-    for field, value in event_in.model_dump(exclude_unset=True).items():
+    update_data = event_in.model_dump(exclude_unset=True)
+
+    # Sanitize HTML in rich text fields if they're being updated
+    if "description" in update_data:
+        update_data["description"] = sanitize_html(update_data["description"])
+    if "remarks" in update_data:
+        update_data["remarks"] = sanitize_html(update_data["remarks"])
+
+    for field, value in update_data.items():
         setattr(event, field, value)
 
     db.add(event)
@@ -130,6 +146,7 @@ def update_discipline_event(
         attachment_path=event.attachment_path,
         response_type=event.response_type,
         response_other_text=event.response_other_text,
+        status=event.status,
         punishment_delivered=event.punishment_delivered,
         punishment_completed=event.punishment_completed,
         remarks=event.remarks,

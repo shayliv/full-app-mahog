@@ -13,6 +13,7 @@ from app.schemas import (
     MedicalProfileCreate,
     MedicalProfileUpdate,
 )
+from app.utils.text_sanitizer import sanitize_html
 
 
 router = APIRouter()
@@ -40,7 +41,12 @@ def create_medical_profile(
     profile_in: MedicalProfileCreate,
     db: Session = Depends(get_db),
 ) -> MedicalProfile:
-    profile = MedicalProfileModel(student_id=student_id, **profile_in.model_dump())
+    profile_data = profile_in.model_dump()
+    # Sanitize HTML in notes
+    if profile_data.get("notes"):
+        profile_data["notes"] = sanitize_html(profile_data["notes"])
+
+    profile = MedicalProfileModel(student_id=student_id, **profile_data)
     db.add(profile)
     db.commit()
     db.refresh(profile)
@@ -61,7 +67,12 @@ def update_medical_profile(
     if not profile:
         raise HTTPException(status_code=404, detail="Medical profile not found")
 
-    for field, value in profile_in.model_dump(exclude_unset=True).items():
+    update_data = profile_in.model_dump(exclude_unset=True)
+    # Sanitize HTML in notes if being updated
+    if "notes" in update_data and update_data["notes"]:
+        update_data["notes"] = sanitize_html(update_data["notes"])
+
+    for field, value in update_data.items():
         setattr(profile, field, value)
 
     db.add(profile)
@@ -91,7 +102,14 @@ def create_medical_event(
     event_in: MedicalEventCreate,
     db: Session = Depends(get_db),
 ) -> MedicalEvent:
-    event = MedicalEventModel(student_id=student_id, **event_in.model_dump())
+    event_data = event_in.model_dump()
+    # Sanitize HTML in notes and educational_material_missed
+    if event_data.get("notes"):
+        event_data["notes"] = sanitize_html(event_data["notes"])
+    if event_data.get("educational_material_missed"):
+        event_data["educational_material_missed"] = sanitize_html(event_data["educational_material_missed"])
+
+    event = MedicalEventModel(student_id=student_id, **event_data)
     db.add(event)
     db.commit()
     db.refresh(event)
@@ -116,7 +134,14 @@ def update_medical_event(
     if not event:
         raise HTTPException(status_code=404, detail="Medical event not found")
 
-    for field, value in event_in.model_dump(exclude_unset=True).items():
+    update_data = event_in.model_dump(exclude_unset=True)
+    # Sanitize HTML in rich text fields if being updated
+    if "notes" in update_data and update_data["notes"]:
+        update_data["notes"] = sanitize_html(update_data["notes"])
+    if "educational_material_missed" in update_data and update_data["educational_material_missed"]:
+        update_data["educational_material_missed"] = sanitize_html(update_data["educational_material_missed"])
+
+    for field, value in update_data.items():
         setattr(event, field, value)
 
     db.add(event)

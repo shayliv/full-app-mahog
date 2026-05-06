@@ -21,7 +21,16 @@ class DisciplineResponseType(str, PyEnum):
     CLEANLINESS_INSPECTION = "cleanliness_inspection"
     REPRIMAND_TALK = "reprimand_talk"
     FOUR_CORNERS = "four_corners"
+    EXIT_HOURS = "exit_hours"
     OTHER = "other"
+
+
+class DisciplineStatus(str, PyEnum):
+    TOLD = "told"  # נאמר - told to submit report
+    SUBMITTED = "submitted"  # הגיש/ה - submitted report
+    DECIDED = "decided"  # הוחלט - punishment decided
+    DELIVERED = "delivered"  # נמסר - punishment delivered to trainee
+    COMPLETED = "completed"  # בוצע - punishment completed
 
 
 class DisciplineEvent(Base):
@@ -32,6 +41,7 @@ class DisciplineEvent(Base):
     attachment_path = Column(String(255), nullable=True)
     response_type = Column(Enum(DisciplineResponseType), nullable=True)
     response_other_text = Column(String(255), nullable=True)
+    status = Column(Enum(DisciplineStatus), default=DisciplineStatus.TOLD, nullable=False, index=True)
     punishment_delivered = Column(Boolean, default=False, nullable=False)
     punishment_completed = Column(Boolean, default=False, nullable=False)
     remarks = Column(Text, nullable=False)

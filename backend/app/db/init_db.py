@@ -135,6 +135,120 @@ def _migrate_student_status_to_active_terminated() -> None:
             conn.commit()
 
 
+def _ensure_discipline_status_column() -> None:
+    """Add status column to discipline_event table if missing."""
+    with engine.connect() as conn:
+        result = conn.execute(
+            text(
+                "SELECT COUNT(*) FROM information_schema.COLUMNS "
+                "WHERE TABLE_SCHEMA = DATABASE() "
+                "AND TABLE_NAME = 'disciplineevent' "
+                "AND COLUMN_NAME = 'status'"
+            )
+        )
+        has_column = bool(result.scalar())
+        if not has_column:
+            conn.execute(
+                text(
+                    "ALTER TABLE disciplineevent "
+                    "ADD COLUMN status ENUM('told', 'submitted', 'decided', 'delivered', 'completed') "
+                    "NOT NULL DEFAULT 'told' AFTER response_other_text"
+                )
+            )
+            conn.commit()
+
+
+def _ensure_medical_event_columns() -> None:
+    """Add new columns to medical_event table if missing."""
+    columns = [
+        ("event_time", "ADD COLUMN event_time TIME NULL AFTER end_date"),
+        ("educational_material_missed", "ADD COLUMN educational_material_missed TEXT NULL AFTER document_path"),
+        ("notes", "ADD COLUMN notes TEXT NULL AFTER educational_material_missed"),
+    ]
+    with engine.connect() as conn:
+        for col_name, alter_sql in columns:
+            result = conn.execute(
+                text(
+                    "SELECT COUNT(*) FROM information_schema.COLUMNS "
+                    "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'medicalevent' AND COLUMN_NAME = :name"
+                ),
+                {"name": col_name},
+            )
+            if not result.scalar():
+                conn.execute(text(f"ALTER TABLE medicalevent {alter_sql}"))
+                conn.commit()
+
+
+def _ensure_medical_profile_notes() -> None:
+    """Add notes column to medical_profile table if missing."""
+    with engine.connect() as conn:
+        result = conn.execute(
+            text(
+                "SELECT COUNT(*) FROM information_schema.COLUMNS "
+                "WHERE TABLE_SCHEMA = DATABASE() "
+                "AND TABLE_NAME = 'medicalprofile' "
+                "AND COLUMN_NAME = 'notes'"
+            )
+        )
+        has_column = bool(result.scalar())
+        if not has_column:
+            conn.execute(
+                text(
+                    "ALTER TABLE medicalprofile "
+                    "ADD COLUMN notes TEXT NULL AFTER diet"
+                )
+            )
+            conn.commit()
+
+
+def _ensure_command_summary_title() -> None:
+    """Add title column to command_summary table if missing."""
+    with engine.connect() as conn:
+        result = conn.execute(
+            text(
+                "SELECT COUNT(*) FROM information_schema.COLUMNS "
+                "WHERE TABLE_SCHEMA = DATABASE() "
+                "AND TABLE_NAME = 'commandsummary' "
+                "AND COLUMN_NAME = 'title'"
+            )
+        )
+        has_column = bool(result.scalar())
+        if not has_column:
+            conn.execute(
+                text(
+                    "ALTER TABLE commandsummary "
+                    "ADD COLUMN title VARCHAR(255) NULL AFTER date"
+                )
+            )
+            conn.commit()
+
+
+def _update_discipline_response_type_enum() -> None:
+    """Update discipline response type enum to include exit_hours."""
+    with engine.connect() as conn:
+        result = conn.execute(
+            text(
+                "SELECT COLUMN_TYPE FROM information_schema.COLUMNS "
+                "WHERE TABLE_SCHEMA = DATABASE() "
+                "AND TABLE_NAME = 'disciplineevent' "
+                "AND COLUMN_NAME = 'response_type'"
+            )
+        )
+        row = result.fetchone()
+        if row:
+            col_type = (row[0] or "").upper()
+            if "EXIT_HOURS" not in col_type:
+                conn.execute(
+                    text(
+                        "ALTER TABLE disciplineevent MODIFY response_type "
+                        "ENUM('shabbat', 'hearing', 'trial', 'uniform_inspection', "
+                        "'cleanliness_inspection', 'reprimand_talk', 'four_corners', "
+                        "'exit_hours', 'other') NULL"
+                    )
+                )
+                conn.commit()
+
+
 def init_db_and_seed() -> None:
     """Initialize database with empty schema - no seed data."""
     Base.metadata.create_all(bind=engine)
@@ -142,5 +256,10 @@ def init_db_and_seed() -> None:
     _ensure_personal_columns()
     _migrate_student_status_to_active_terminated()
     _ensure_personal_number_column()
+    _ensure_discipline_status_column()
+    _ensure_medical_event_columns()
+    _ensure_medical_profile_notes()
+    _ensure_command_summary_title()
+    _update_discipline_response_type_enum()
     # Empty database - no seed data
 

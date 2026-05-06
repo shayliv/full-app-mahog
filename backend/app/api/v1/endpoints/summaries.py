@@ -10,6 +10,7 @@ from app.schemas import (
     CommandSummaryCreate,
     CommandSummaryUpdate,
 )
+from app.utils.text_sanitizer import sanitize_html
 
 
 router = APIRouter()
@@ -34,7 +35,12 @@ def create_command_summary(
     summary_in: CommandSummaryCreate,
     db: Session = Depends(get_db),
 ) -> CommandSummary:
-    summary = CommandSummaryModel(student_id=student_id, **summary_in.model_dump())
+    summary_data = summary_in.model_dump()
+    # Sanitize HTML in text field
+    if summary_data.get("text"):
+        summary_data["text"] = sanitize_html(summary_data["text"])
+
+    summary = CommandSummaryModel(student_id=student_id, **summary_data)
     db.add(summary)
     db.commit()
     db.refresh(summary)
@@ -59,7 +65,12 @@ def update_command_summary(
     if not summary:
         raise HTTPException(status_code=404, detail="Command summary not found")
 
-    for field, value in summary_in.model_dump(exclude_unset=True).items():
+    update_data = summary_in.model_dump(exclude_unset=True)
+    # Sanitize HTML in text field if being updated
+    if "text" in update_data and update_data["text"]:
+        update_data["text"] = sanitize_html(update_data["text"])
+
+    for field, value in update_data.items():
         setattr(summary, field, value)
 
     db.add(summary)

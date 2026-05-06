@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, time
 from enum import Enum
 from typing import List, Optional
 
@@ -24,6 +24,7 @@ class MedicalProfileBase(BaseModel):
     temporary_exemptions: Optional[str] = None
     allergies: Optional[str] = None
     diet: Optional[str] = None
+    notes: Optional[str] = None
 
 
 class MedicalProfileCreate(MedicalProfileBase):
@@ -45,8 +46,11 @@ class MedicalEventBase(BaseModel):
     event_type: MedicalEventType
     start_date: date
     end_date: Optional[date] = None
+    event_time: Optional[time] = None
     status: MedicalEventStatus
     document_path: Optional[str] = None
+    educational_material_missed: Optional[str] = None
+    notes: Optional[str] = None
 
 
 class MedicalEventCreate(MedicalEventBase):
@@ -57,8 +61,11 @@ class MedicalEventUpdate(BaseModel):
     event_type: Optional[MedicalEventType] = None
     start_date: Optional[date] = None
     end_date: Optional[date] = None
+    event_time: Optional[time] = None
     status: Optional[MedicalEventStatus] = None
     document_path: Optional[str] = None
+    educational_material_missed: Optional[str] = None
+    notes: Optional[str] = None
 
 
 class MedicalEvent(MedicalEventBase):
