@@ -30,3 +30,4 @@ Thumbs.db
 
 # Large binary files
 offline-images/*.tar.gz
+offline-images.zip
