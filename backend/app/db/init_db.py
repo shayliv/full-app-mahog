@@ -223,6 +223,28 @@ def _ensure_command_summary_title() -> None:
             conn.commit()
 
 
+def _ensure_profile_image_column() -> None:
+    """Add profile_image column to student table if missing."""
+    with engine.connect() as conn:
+        result = conn.execute(
+            text(
+                "SELECT COUNT(*) FROM information_schema.COLUMNS "
+                "WHERE TABLE_SCHEMA = DATABASE() "
+                "AND TABLE_NAME = 'student' "
+                "AND COLUMN_NAME = 'profile_image'"
+            )
+        )
+        has_column = bool(result.scalar())
+        if not has_column:
+            conn.execute(
+                text(
+                    "ALTER TABLE student "
+                    "ADD COLUMN profile_image VARCHAR(255) NULL"
+                )
+            )
+            conn.commit()
+
+
 def _update_discipline_response_type_enum() -> None:
     """Update discipline response type enum to include exit_hours."""
     with engine.connect() as conn:
@@ -256,10 +278,10 @@ def init_db_and_seed() -> None:
     _ensure_personal_columns()
     _migrate_student_status_to_active_terminated()
     _ensure_personal_number_column()
+    _ensure_profile_image_column()
     _ensure_discipline_status_column()
     _ensure_medical_event_columns()
     _ensure_medical_profile_notes()
     _ensure_command_summary_title()
     _update_discipline_response_type_enum()
-    # Empty database - no seed data
 

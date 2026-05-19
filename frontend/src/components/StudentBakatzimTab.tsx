@@ -68,7 +68,9 @@ export function StudentBakatzimTab({ studentId }: Props) {
       setNotes("");
     },
     onError: (error: any) => {
-      alert(error.response?.data?.detail || "שגיאה בשמירת בקשת היציאה");
+      const detail = error.response?.data?.detail;
+      const msg = typeof detail === 'string' ? detail : detail ? JSON.stringify(detail) : "שגיאה בשמירת בקשת היציאה";
+      alert(msg);
     },
   });
 
@@ -91,7 +93,9 @@ export function StudentBakatzimTab({ studentId }: Props) {
       setNotes("");
     },
     onError: (error: any) => {
-      alert(error.response?.data?.detail || "שגיאה בעדכון בקשת היציאה");
+      const detail = error.response?.data?.detail;
+      const msg = typeof detail === 'string' ? detail : detail ? JSON.stringify(detail) : "שגיאה בעדכון בקשת היציאה";
+      alert(msg);
     },
   });
 

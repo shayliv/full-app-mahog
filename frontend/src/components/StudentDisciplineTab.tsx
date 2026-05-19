@@ -81,7 +81,9 @@ export function StudentDisciplineTab({ studentId }: Props) {
       setRemarks("");
     },
     onError: (error: any) => {
-      alert(error.response?.data?.detail || "שגיאה בשמירת אירוע המשמעת");
+      const detail = error.response?.data?.detail;
+      const msg = typeof detail === 'string' ? detail : detail ? JSON.stringify(detail) : "שגיאה בשמירת אירוע המשמעת";
+      alert(msg);
     }
   });
 
@@ -108,7 +110,9 @@ export function StudentDisciplineTab({ studentId }: Props) {
       setRemarks("");
     },
     onError: (error: any) => {
-      alert(error.response?.data?.detail || "שגיאה בעדכון אירוע המשמעת");
+      const detail = error.response?.data?.detail;
+      const msg = typeof detail === 'string' ? detail : detail ? JSON.stringify(detail) : "שגיאה בעדכון אירוע המשמעת";
+      alert(msg);
     }
   });
 
@@ -306,11 +310,11 @@ export function StudentDisciplineTab({ studentId }: Props) {
             <tr className="[&>th]:px-3 [&>th]:py-2 [&>th]:text-right">
               <th>תאריך</th>
               <th>סוג</th>
+              <th>תיאור</th>
               <th>מפקד מדווח</th>
               <th>תגובה</th>
               <th>סטטוס</th>
-              <th>נמסרה</th>
-              <th>הושלמה</th>
+              <th>הערות</th>
               <th>פעולות</th>
             </tr>
           </thead>
@@ -319,6 +323,9 @@ export function StudentDisciplineTab({ studentId }: Props) {
               <tr key={e.id} className="[&>td]:px-3 [&>td]:py-2 hover:bg-slate-50">
                 <td>{e.date}</td>
                 <td>{e.event_type === "individual" ? "יחידני" : e.event_type === "multi_student" ? "ריבוי חניכים" : "כיתה/מגמה"}</td>
+                <td>
+                  <div className="max-w-[200px] truncate rich-text-display" dangerouslySetInnerHTML={{ __html: e.description }} />
+                </td>
                 <td>{e.reporting_commander}</td>
                 <td>{e.response_type || "-"}</td>
                 <td>
@@ -326,8 +333,9 @@ export function StudentDisciplineTab({ studentId }: Props) {
                     {statusLabels[e.status] || e.status}
                   </span>
                 </td>
-                <td>{e.punishment_delivered ? "כן" : "לא"}</td>
-                <td>{e.punishment_completed ? "כן" : "לא"}</td>
+                <td>
+                  <div className="max-w-[200px] truncate rich-text-display" dangerouslySetInnerHTML={{ __html: e.remarks }} />
+                </td>
                 <td>
                   <button
                     onClick={() => handleEdit(e)}

@@ -47,7 +47,9 @@ export function StudentSummariesTab({ studentId }: Props) {
       setSummaryText("");
     },
     onError: (error: any) => {
-      alert(error.response?.data?.detail || "שגיאה בשמירת סיכום המפקד");
+      const detail = error.response?.data?.detail;
+      const msg = typeof detail === 'string' ? detail : detail ? JSON.stringify(detail) : "שגיאה בשמירת סיכום המפקד";
+      alert(msg);
     }
   });
 
@@ -67,7 +69,9 @@ export function StudentSummariesTab({ studentId }: Props) {
       setSummaryText("");
     },
     onError: (error: any) => {
-      alert(error.response?.data?.detail || "שגיאה בעדכון סיכום המפקד");
+      const detail = error.response?.data?.detail;
+      const msg = typeof detail === 'string' ? detail : detail ? JSON.stringify(detail) : "שגיאה בעדכון סיכום המפקד";
+      alert(msg);
     }
   });
 

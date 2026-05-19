@@ -18,54 +18,25 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const [isFocused, setIsFocused] = useState(false);
-  const lastValueRef = useRef(value);
+  const isInternalChange = useRef(false);
 
   // Only update innerHTML when value changes externally (not from our own input)
   useEffect(() => {
-    if (editorRef.current && value !== lastValueRef.current) {
-      const isCurrentlyFocused = document.activeElement === editorRef.current;
-
-      // Save cursor position if focused
-      let savedSelection: { start: number; end: number } | null = null;
-      if (isCurrentlyFocused) {
-        try {
-          const selection = window.getSelection();
-          if (selection && selection.rangeCount > 0) {
-            const range = selection.getRangeAt(0);
-            savedSelection = {
-              start: range.startOffset,
-              end: range.endOffset,
-            };
-          }
-        } catch (e) {
-          // Ignore selection errors
-        }
+    if (editorRef.current) {
+      if (isInternalChange.current) {
+        isInternalChange.current = false;
+        return;
       }
-
-      // Update content
+      if (document.activeElement === editorRef.current) {
+        return;
+      }
       editorRef.current.innerHTML = value || '';
-      lastValueRef.current = value;
-
-      // Restore cursor position if it was focused
-      if (isCurrentlyFocused && savedSelection && editorRef.current.firstChild) {
-        try {
-          const selection = window.getSelection();
-          const range = document.createRange();
-          const textNode = editorRef.current.firstChild;
-          range.setStart(textNode, Math.min(savedSelection.start, textNode.textContent?.length || 0));
-          range.setEnd(textNode, Math.min(savedSelection.end, textNode.textContent?.length || 0));
-          selection?.removeAllRanges();
-          selection?.addRange(range);
-        } catch (e) {
-          // Ignore cursor restoration errors
-        }
-      }
     }
   }, [value]);
 
   const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
     const newValue = e.currentTarget.innerHTML;
-    lastValueRef.current = newValue;
+    isInternalChange.current = true;
     onChange(newValue);
   };
 
@@ -73,10 +44,9 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     document.execCommand(command, false, value);
     editorRef.current?.focus();
 
-    // Trigger input event to update state
     if (editorRef.current) {
       const newValue = editorRef.current.innerHTML;
-      lastValueRef.current = newValue;
+      isInternalChange.current = true;
       onChange(newValue);
     }
   };
