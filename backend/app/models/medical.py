@@ -27,7 +27,8 @@ class MedicalProfile(Base):
     temporary_exemptions = Column(Text, nullable=True)
     allergies = Column(Text, nullable=True)
     diet = Column(String(50), nullable=True)  # vegetarian/vegan/other
-    notes = Column(Text, nullable=True)  # Additional notes with rich text support
+    notes = Column(Text, nullable=True)
+    exemption_documents_json = Column(Text, nullable=True)
 
     student = relationship("Student", back_populates="medical_profile")
 

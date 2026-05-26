@@ -151,8 +151,8 @@ def _ensure_discipline_status_column() -> None:
             conn.execute(
                 text(
                     "ALTER TABLE disciplineevent "
-                    "ADD COLUMN status ENUM('told', 'submitted', 'decided', 'delivered', 'completed') "
-                    "NOT NULL DEFAULT 'told' AFTER response_other_text"
+                    "ADD COLUMN status ENUM('TOLD', 'SUBMITTED', 'DECIDED', 'DELIVERED', 'COMPLETED') "
+                    "NOT NULL DEFAULT 'TOLD' AFTER response_other_text"
                 )
             )
             conn.commit()
@@ -263,9 +263,9 @@ def _update_discipline_response_type_enum() -> None:
                 conn.execute(
                     text(
                         "ALTER TABLE disciplineevent MODIFY response_type "
-                        "ENUM('shabbat', 'hearing', 'trial', 'uniform_inspection', "
-                        "'cleanliness_inspection', 'reprimand_talk', 'four_corners', "
-                        "'exit_hours', 'other') NULL"
+                        "ENUM('SHABBAT', 'HEARING', 'TRIAL', 'UNIFORM_INSPECTION', "
+                        "'CLEANLINESS_INSPECTION', 'REPRIMAND_TALK', 'FOUR_CORNERS', "
+                        "'EXIT_HOURS', 'OTHER') NULL"
                     )
                 )
                 conn.commit()

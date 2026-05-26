@@ -239,14 +239,14 @@ export function StudentBakatzimTab({ studentId }: Props) {
             </label>
           </div>
 
-          <label className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1">
             <span>הערות</span>
             <RichTextEditor
               value={notes}
               onChange={setNotes}
               placeholder="הערות נוספות על בקשת היציאה..."
             />
-          </label>
+          </div>
 
           {editingBakatz && (
             <div>

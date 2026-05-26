@@ -164,14 +164,14 @@ export function StudentSummariesTab({ studentId }: Props) {
             />
           </label>
         </div>
-        <label className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1">
           <span>תוכן הסיכום</span>
           <RichTextEditor
             value={summaryText}
             onChange={setSummaryText}
             placeholder="כתוב את סיכום המפקד כאן..."
           />
-        </label>
+        </div>
 
         {editingSummary && (
           <div>

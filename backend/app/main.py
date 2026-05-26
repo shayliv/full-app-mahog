@@ -24,8 +24,8 @@ def create_app() -> FastAPI:
     app.include_router(api_router, prefix="/api/v1")
 
     static_dir = Path(__file__).resolve().parent.parent / "static"
-    if static_dir.exists():
-        app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+    static_dir.mkdir(parents=True, exist_ok=True)
+    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
     @app.on_event("startup")
     def startup_event() -> None:

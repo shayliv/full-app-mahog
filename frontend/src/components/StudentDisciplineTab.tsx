@@ -26,19 +26,19 @@ type Props = {
 };
 
 const statusLabels: Record<string, string> = {
-  told: "נאמר",
-  submitted: "הגיש/ה",
-  decided: "הוחלט",
-  delivered: "נמסר",
-  completed: "בוצע"
+  TOLD: "נאמר",
+  SUBMITTED: "הגיש/ה",
+  DECIDED: "הוחלט",
+  DELIVERED: "נמסר",
+  COMPLETED: "בוצע"
 };
 
 const statusColors: Record<string, string> = {
-  told: "bg-gray-100 text-gray-800",
-  submitted: "bg-blue-100 text-blue-800",
-  decided: "bg-yellow-100 text-yellow-800",
-  delivered: "bg-orange-100 text-orange-800",
-  completed: "bg-green-100 text-green-800"
+  TOLD: "bg-gray-100 text-gray-800",
+  SUBMITTED: "bg-blue-100 text-blue-800",
+  DECIDED: "bg-yellow-100 text-yellow-800",
+  DELIVERED: "bg-orange-100 text-orange-800",
+  COMPLETED: "bg-green-100 text-green-800"
 };
 
 export function StudentDisciplineTab({ studentId }: Props) {
@@ -66,7 +66,7 @@ export function StudentDisciplineTab({ studentId }: Props) {
         attachment_path: null,
         response_type: formData.get("response_type") || null,
         response_other_text: formData.get("response_other_text") || null,
-        status: formData.get("status") || "told",
+        status: formData.get("status") || "TOLD",
         punishment_delivered: formData.get("punishment_delivered") === "on",
         punishment_completed: formData.get("punishment_completed") === "on",
         remarks: remarks,
@@ -96,7 +96,7 @@ export function StudentDisciplineTab({ studentId }: Props) {
         reporting_commander: formData.get("reporting_commander"),
         response_type: formData.get("response_type") || null,
         response_other_text: formData.get("response_other_text") || null,
-        status: formData.get("status") || "told",
+        status: formData.get("status") || "TOLD",
         punishment_delivered: formData.get("punishment_delivered") === "on",
         punishment_completed: formData.get("punishment_completed") === "on",
         remarks: remarks,
@@ -176,12 +176,12 @@ export function StudentDisciplineTab({ studentId }: Props) {
             <span>סוג אירוע</span>
             <select
               name="event_type"
-              defaultValue={editingEvent?.event_type || "individual"}
+              defaultValue={editingEvent?.event_type || "INDIVIDUAL"}
               className="rounded-md border border-slate-300 bg-white px-2 py-1"
             >
-              <option value="individual">אירוע יחידני</option>
-              <option value="multi_student">אירוע ריבוי חניכים</option>
-              <option value="class_track">אירוע כיתה / מגמה</option>
+              <option value="INDIVIDUAL">אירוע יחידני</option>
+              <option value="MULTI_STUDENT">אירוע ריבוי חניכים</option>
+              <option value="CLASS_TRACK">אירוע כיתה / מגמה</option>
             </select>
           </label>
           <label className="flex flex-col gap-1">
@@ -204,14 +204,14 @@ export function StudentDisciplineTab({ studentId }: Props) {
             />
           </label>
         </div>
-        <label className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1">
           <span>תיאור האירוע</span>
           <RichTextEditor
             value={description}
             onChange={setDescription}
             placeholder="תאר את אירוע המשמעת..."
           />
-        </label>
+        </div>
         <div className="grid gap-3 sm:grid-cols-3">
           <label className="flex flex-col gap-1">
             <span>תגובה משמעתית</span>
@@ -221,15 +221,15 @@ export function StudentDisciplineTab({ studentId }: Props) {
               className="rounded-md border border-slate-300 bg-white px-2 py-1"
             >
               <option value="">ללא</option>
-              <option value="shabbat">שבת</option>
-              <option value="hearing">שימוע</option>
-              <option value="trial">משפט</option>
-              <option value="uniform_inspection">מסדר דיגום</option>
-              <option value="cleanliness_inspection">מסדר ניקיון</option>
-              <option value="reprimand_talk">שיחת נזיפה</option>
-              <option value="four_corners">עונש ארבע פינות</option>
-              <option value="exit_hours">שעות ביציאה</option>
-              <option value="other">אחר</option>
+              <option value="SHABBAT">שבת</option>
+              <option value="HEARING">שימוע</option>
+              <option value="TRIAL">משפט</option>
+              <option value="UNIFORM_INSPECTION">מסדר דיגום</option>
+              <option value="CLEANLINESS_INSPECTION">מסדר ניקיון</option>
+              <option value="REPRIMAND_TALK">שיחת נזיפה</option>
+              <option value="FOUR_CORNERS">עונש ארבע פינות</option>
+              <option value="EXIT_HOURS">שעות ביציאה</option>
+              <option value="OTHER">אחר</option>
             </select>
           </label>
           <label className="flex flex-col gap-1">
@@ -245,14 +245,14 @@ export function StudentDisciplineTab({ studentId }: Props) {
             <span>סטטוס</span>
             <select
               name="status"
-              defaultValue={editingEvent?.status || "told"}
+              defaultValue={editingEvent?.status || "TOLD"}
               className="rounded-md border border-slate-300 bg-white px-2 py-1"
             >
-              <option value="told">נאמר</option>
-              <option value="submitted">הגיש/ה</option>
-              <option value="decided">הוחלט</option>
-              <option value="delivered">נמסר</option>
-              <option value="completed">בוצע</option>
+              <option value="TOLD">נאמר</option>
+              <option value="SUBMITTED">הגיש/ה</option>
+              <option value="DECIDED">הוחלט</option>
+              <option value="DELIVERED">נמסר</option>
+              <option value="COMPLETED">בוצע</option>
             </select>
           </label>
         </div>
@@ -266,14 +266,14 @@ export function StudentDisciplineTab({ studentId }: Props) {
             <span>הענישה הושלמה</span>
           </label>
         </div>
-        <label className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1">
           <span>הערות (חובה)</span>
           <RichTextEditor
             value={remarks}
             onChange={setRemarks}
             placeholder="הערות נוספות..."
           />
-        </label>
+        </div>
 
         {editingEvent && (
           <div>

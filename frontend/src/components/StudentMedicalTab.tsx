@@ -228,10 +228,10 @@ export function StudentMedicalTab({ studentId }: Props) {
               )}
             </dl>
 
-            {profile?.exemption_documents && profile.exemption_documents.length > 0 && (
-              <div className="mt-4">
-                <p className="mb-2 text-sm font-medium text-slate-700">מסמכי פטור</p>
-                <ul className="space-y-1">
+            <div className="mt-4">
+              <p className="mb-2 text-sm font-medium text-slate-700">מסמכי פטור</p>
+              {profile?.exemption_documents && profile.exemption_documents.length > 0 && (
+                <ul className="mb-2 space-y-1">
                   {profile.exemption_documents.map((doc, i) => (
                     <li key={i}>
                       <a
@@ -245,8 +245,20 @@ export function StudentMedicalTab({ studentId }: Props) {
                     </li>
                   ))}
                 </ul>
-              </div>
-            )}
+              )}
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50">
+                <span>+ העלה מסמך</span>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) uploadDocument.mutate(file);
+                  }}
+                />
+              </label>
+            </div>
           </div>
         ) : (
           <form
@@ -312,14 +324,14 @@ export function StudentMedicalTab({ studentId }: Props) {
                   className="rounded-md border border-slate-300 bg-white px-2 py-1"
                 />
               </label>
-              <label className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1">
                 <span>{medicalProfileLabels.notes}</span>
                 <RichTextEditor
                   value={profileNotes}
                   onChange={setProfileNotes}
                   placeholder="הערות רפואיות נוספות..."
                 />
-              </label>
+              </div>
 
               <div className="mt-4">
                 <label className="flex flex-col gap-1">
@@ -445,22 +457,22 @@ export function StudentMedicalTab({ studentId }: Props) {
                 <option value="closed">סגור</option>
               </select>
             </label>
-            <label className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1">
               <span>חומר לימודי שפוספס</span>
               <RichTextEditor
                 value={eventEducationalMaterial}
                 onChange={setEventEducationalMaterial}
                 placeholder="פרט איזה חומר לימודי פספס החניך..."
               />
-            </label>
-            <label className="flex flex-col gap-1">
+            </div>
+            <div className="flex flex-col gap-1">
               <span>הערות</span>
               <RichTextEditor
                 value={eventNotes}
                 onChange={setEventNotes}
                 placeholder="הערות נוספות על האירוע..."
               />
-            </label>
+            </div>
             <div className="flex justify-end gap-2">
               <button
                 type="button"

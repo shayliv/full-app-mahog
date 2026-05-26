@@ -37,6 +37,7 @@ class MedicalProfileUpdate(MedicalProfileBase):
 
 class MedicalProfile(MedicalProfileBase):
     id: int
+    exemption_documents: Optional[List[str]] = None
 
     class Config:
         from_attributes = True

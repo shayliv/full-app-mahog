@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date as DateType
 from enum import Enum
 from typing import List, Optional
 
@@ -6,35 +6,35 @@ from pydantic import BaseModel, Field
 
 
 class DisciplineEventType(str, Enum):
-    INDIVIDUAL = "individual"
-    MULTI_STUDENT = "multi_student"
-    CLASS_TRACK = "class_track"
+    INDIVIDUAL = "INDIVIDUAL"
+    MULTI_STUDENT = "MULTI_STUDENT"
+    CLASS_TRACK = "CLASS_TRACK"
 
 
 class DisciplineResponseType(str, Enum):
-    SHABBAT = "shabbat"
-    HEARING = "hearing"
-    TRIAL = "trial"
-    UNIFORM_INSPECTION = "uniform_inspection"
-    CLEANLINESS_INSPECTION = "cleanliness_inspection"
-    REPRIMAND_TALK = "reprimand_talk"
-    FOUR_CORNERS = "four_corners"
-    EXIT_HOURS = "exit_hours"
-    OTHER = "other"
+    SHABBAT = "SHABBAT"
+    HEARING = "HEARING"
+    TRIAL = "TRIAL"
+    UNIFORM_INSPECTION = "UNIFORM_INSPECTION"
+    CLEANLINESS_INSPECTION = "CLEANLINESS_INSPECTION"
+    REPRIMAND_TALK = "REPRIMAND_TALK"
+    FOUR_CORNERS = "FOUR_CORNERS"
+    EXIT_HOURS = "EXIT_HOURS"
+    OTHER = "OTHER"
 
 
 class DisciplineStatus(str, Enum):
-    TOLD = "told"
-    SUBMITTED = "submitted"
-    DECIDED = "decided"
-    DELIVERED = "delivered"
-    COMPLETED = "completed"
+    TOLD = "TOLD"
+    SUBMITTED = "SUBMITTED"
+    DECIDED = "DECIDED"
+    DELIVERED = "DELIVERED"
+    COMPLETED = "COMPLETED"
 
 
 class DisciplineEventBase(BaseModel):
     event_type: DisciplineEventType
     description: str
-    date: date
+    date: DateType
     reporting_commander: str
     attachment_path: Optional[str] = None
     response_type: Optional[DisciplineResponseType] = None
@@ -51,7 +51,7 @@ class DisciplineEventCreate(DisciplineEventBase):
 
 class DisciplineEventUpdate(BaseModel):
     description: Optional[str] = None
-    date: Optional[date] = None
+    date: Optional[DateType] = None
     reporting_commander: Optional[str] = None
     attachment_path: Optional[str] = None
     response_type: Optional[DisciplineResponseType] = None
@@ -66,7 +66,7 @@ class DisciplineEvent(BaseModel):
     id: int
     event_type: DisciplineEventType
     description: str
-    date: date
+    date: DateType
     reporting_commander: str
     attachment_path: Optional[str] = None
     response_type: Optional[DisciplineResponseType] = None

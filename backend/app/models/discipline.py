@@ -8,29 +8,29 @@ from app.db.base import Base
 
 
 class DisciplineEventType(str, PyEnum):
-    INDIVIDUAL = "individual"
-    MULTI_STUDENT = "multi_student"
-    CLASS_TRACK = "class_track"
+    INDIVIDUAL = "INDIVIDUAL"
+    MULTI_STUDENT = "MULTI_STUDENT"
+    CLASS_TRACK = "CLASS_TRACK"
 
 
 class DisciplineResponseType(str, PyEnum):
-    SHABBAT = "shabbat"
-    HEARING = "hearing"
-    TRIAL = "trial"
-    UNIFORM_INSPECTION = "uniform_inspection"
-    CLEANLINESS_INSPECTION = "cleanliness_inspection"
-    REPRIMAND_TALK = "reprimand_talk"
-    FOUR_CORNERS = "four_corners"
-    EXIT_HOURS = "exit_hours"
-    OTHER = "other"
+    SHABBAT = "SHABBAT"
+    HEARING = "HEARING"
+    TRIAL = "TRIAL"
+    UNIFORM_INSPECTION = "UNIFORM_INSPECTION"
+    CLEANLINESS_INSPECTION = "CLEANLINESS_INSPECTION"
+    REPRIMAND_TALK = "REPRIMAND_TALK"
+    FOUR_CORNERS = "FOUR_CORNERS"
+    EXIT_HOURS = "EXIT_HOURS"
+    OTHER = "OTHER"
 
 
 class DisciplineStatus(str, PyEnum):
-    TOLD = "told"  # נאמר - told to submit report
-    SUBMITTED = "submitted"  # הגיש/ה - submitted report
-    DECIDED = "decided"  # הוחלט - punishment decided
-    DELIVERED = "delivered"  # נמסר - punishment delivered to trainee
-    COMPLETED = "completed"  # בוצע - punishment completed
+    TOLD = "TOLD"
+    SUBMITTED = "SUBMITTED"
+    DECIDED = "DECIDED"
+    DELIVERED = "DELIVERED"
+    COMPLETED = "COMPLETED"
 
 
 class DisciplineEvent(Base):

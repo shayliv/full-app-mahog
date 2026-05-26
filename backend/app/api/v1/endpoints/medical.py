@@ -19,6 +19,16 @@ from app.utils.text_sanitizer import sanitize_html
 router = APIRouter()
 
 
+def _profile_response(profile: MedicalProfileModel) -> MedicalProfile:
+    result = MedicalProfile.from_orm(profile)
+    if profile.exemption_documents_json:
+        try:
+            result.exemption_documents = json.loads(profile.exemption_documents_json)
+        except (json.JSONDecodeError, TypeError):
+            pass
+    return result
+
+
 @router.get("/profile", response_model=MedicalProfile)
 def get_medical_profile(
     student_id: int, db: Session = Depends(get_db)
@@ -30,7 +40,7 @@ def get_medical_profile(
     )
     if not profile:
         raise HTTPException(status_code=404, detail="Medical profile not found")
-    return MedicalProfile.from_orm(profile)
+    return _profile_response(profile)
 
 
 @router.post(
@@ -50,7 +60,7 @@ def create_medical_profile(
     db.add(profile)
     db.commit()
     db.refresh(profile)
-    return MedicalProfile.from_orm(profile)
+    return _profile_response(profile)
 
 
 @router.put("/profile", response_model=MedicalProfile)
@@ -78,7 +88,7 @@ def update_medical_profile(
     db.add(profile)
     db.commit()
     db.refresh(profile)
-    return MedicalProfile.from_orm(profile)
+    return _profile_response(profile)
 
 
 @router.get("/events", response_model=list[MedicalEvent])
@@ -219,13 +229,5 @@ async def upload_medical_document(
     db.commit()
     db.refresh(profile)
 
-    # Parse exemption_documents for response
-    exemption_docs = None
-    if profile.exemption_documents_json:
-        try:
-            exemption_docs = json.loads(profile.exemption_documents_json)
-        except:
-            exemption_docs = None
-
-    return MedicalProfile.from_orm(profile).model_copy(update={"exemption_documents": exemption_docs})
+    return _profile_response(profile)
 

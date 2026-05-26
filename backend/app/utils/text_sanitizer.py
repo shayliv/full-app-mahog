@@ -17,9 +17,6 @@ ALLOWED_ATTRIBUTES = {
     '*': ['dir'],  # Allow dir attribute for RTL support
 }
 
-# Allowed CSS styles (empty for now, can be extended if needed)
-ALLOWED_STYLES = []
-
 
 def sanitize_html(html_content: Optional[str]) -> Optional[str]:
     """
@@ -39,7 +36,6 @@ def sanitize_html(html_content: Optional[str]) -> Optional[str]:
         html_content,
         tags=ALLOWED_TAGS,
         attributes=ALLOWED_ATTRIBUTES,
-        styles=ALLOWED_STYLES,
         strip=True
     )
 
