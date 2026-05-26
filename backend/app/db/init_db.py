@@ -201,6 +201,27 @@ def _ensure_medical_profile_notes() -> None:
             conn.commit()
 
 
+def _ensure_medical_documents_column() -> None:
+    """Add exemption_documents_json column to medical_profile table if missing."""
+    with engine.connect() as conn:
+        result = conn.execute(
+            text(
+                "SELECT COUNT(*) FROM information_schema.COLUMNS "
+                "WHERE TABLE_SCHEMA = DATABASE() "
+                "AND TABLE_NAME = 'medicalprofile' "
+                "AND COLUMN_NAME = 'exemption_documents_json'"
+            )
+        )
+        if not result.scalar():
+            conn.execute(
+                text(
+                    "ALTER TABLE medicalprofile "
+                    "ADD COLUMN exemption_documents_json TEXT NULL AFTER notes"
+                )
+            )
+            conn.commit()
+
+
 def _ensure_command_summary_title() -> None:
     """Add title column to command_summary table if missing."""
     with engine.connect() as conn:
@@ -282,6 +303,7 @@ def init_db_and_seed() -> None:
     _ensure_discipline_status_column()
     _ensure_medical_event_columns()
     _ensure_medical_profile_notes()
+    _ensure_medical_documents_column()
     _ensure_command_summary_title()
     _update_discipline_response_type_enum()
 
